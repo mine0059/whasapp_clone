@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pin_code_fields/flutter_pin_code_fields.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
+import 'package:whatsapp_clone/features/user/presentation/pages/initial_profile_submit_page.dart';
 
 class OtpPage extends StatefulWidget {
   const OtpPage({super.key});
@@ -52,8 +53,11 @@ class _OtpPageState extends State<OtpPage> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const OtpPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const InitialProfileSubmitPage()));
               },
               child: Container(
                 margin: const EdgeInsets.only(bottom: 20),
