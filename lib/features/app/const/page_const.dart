@@ -23,4 +23,7 @@ class PageConst {
 
   //  * call page
   static const String callPage = "callPage";
+
+  //  * edit profile page
+  static const String editProfilePage = "editProfilePage";
 }
