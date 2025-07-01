@@ -1,13 +1,19 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp_clone/features/app/const/app_const.dart';
 import 'package:whatsapp_clone/features/app/global/widgets/profile_widget.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
+import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
+import 'package:whatsapp_clone/storage/storage_provider.dart';
 
 class InitialProfileSubmitPage extends StatefulWidget {
-  const InitialProfileSubmitPage({super.key});
+  const InitialProfileSubmitPage({super.key, required this.phoneNumber});
+
+  final String phoneNumber;
 
   @override
   State<InitialProfileSubmitPage> createState() =>
@@ -24,16 +30,26 @@ class _InitialProfileSubmitPageState extends State<InitialProfileSubmitPage> {
     try {
       final pickedFile = await ImagePicker.platform
           .getImageFromSource(source: ImageSource.gallery);
-      setState(() {
-        if (pickedFile != null) {
-          _image = File(pickedFile.path);
-        } else {
-          debugPrint("no image has been selected");
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (pickedFile != null) {
+            _image = File(pickedFile.path);
+          } else {
+            debugPrint("no image has been selected");
+          }
+        });
+      }
     } catch (e) {
-      toast("some error occured $e");
+      if (mounted) {
+        toast("some error occured $e");
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -84,7 +100,7 @@ class _InitialProfileSubmitPageState extends State<InitialProfileSubmitPage> {
             ),
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: () {},
+              onTap: submitProfileInfo,
               child: Container(
                 width: 150,
                 height: 40,
@@ -109,5 +125,33 @@ class _InitialProfileSubmitPageState extends State<InitialProfileSubmitPage> {
     );
   }
 
-  // void submitProfileInfo() {}
+  void submitProfileInfo() {
+    if (_image != null) {
+      StorageProviderRemoteDatasource.uploadProfileImage(
+          file: _image!,
+          onComplete: (onProfileUpdateComplete) {
+            setState(() {
+              _isProfileUpdating = onProfileUpdateComplete;
+            });
+          }).then((profileImageUrl) {
+        _profileInfo(profileUrl: profileImageUrl);
+      });
+    } else {
+      _profileInfo(profileUrl: "");
+    }
+  }
+
+  void _profileInfo({String? profileUrl}) {
+    if (_usernameController.text.isNotEmpty) {
+      BlocProvider.of<CredentialCubit>(context).submitProfileInfo(
+          user: UserEntity(
+        email: "",
+        username: _usernameController.text,
+        phoneNumber: widget.phoneNumber,
+        status: "Hey There! I'm using WhatsApp Clone",
+        isOnline: false,
+        profileUrl: profileUrl,
+      ));
+    }
+  }
 }
