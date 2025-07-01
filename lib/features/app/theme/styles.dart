@@ -12,6 +12,7 @@ const searchBarColor = Color.fromRGBO(50, 55, 57, 1);
 const dividerColor = Color.fromRGBO(37, 45, 50, 1);
 const chatBarMessageColor = Color.fromRGBO(30, 36, 40, 1);
 const mobileChatBoxColor = Color.fromRGBO(31, 244, 52, 1);
+const lightGreyColor = Colors.white70;
 const greyColor = Colors.grey;
 const blackColor = Colors.black;
 const whiteColor = Colors.white;
