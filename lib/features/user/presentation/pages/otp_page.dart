@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_pin_code_fields/flutter_pin_code_fields.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
 
@@ -12,13 +13,7 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  final TextEditingController _otpController = TextEditingController();
-
-  @override
-  void dispose() {
-    _otpController.dispose();
-    super.dispose();
-  }
+  String _otpCode = "";
 
   @override
   Widget build(BuildContext context) {
@@ -79,28 +74,42 @@ class _OtpPageState extends State<OtpPage> {
     );
   }
 
+  void _submitSmsCode() {
+    if (_otpCode.isNotEmpty) {
+      BlocProvider.of<CredentialCubit>(context)
+          .submitSmsCode(smsCode: _otpCode);
+    }
+  }
+
   Widget _pinCodeWidget() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: <Widget>[
-          PinCodeFields(
-            controller: _otpController,
+          PinCodeTextField(
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+            appContext: context,
+            autoFocus: true,
             length: 6,
-            activeBorderColor: tabColor,
-            onComplete: (String pinCode) {},
+            dialogConfig: DialogConfig(
+              dialogContent: 'Do you want to paste?',
+              dialogTitle: 'paste OTP',
+            ),
+            onChanged: (value) => _otpCode = value,
+            onCompleted: (value) => _otpCode = value,
+            beforeTextPaste: (value) {
+              return value != null &&
+                  value.isNotEmpty &&
+                  value.length == 6 &&
+                  int.tryParse(value) != null;
+            },
           ),
           const Text("Enter your 6 digit code")
         ],
       ),
     );
-  }
-
-  void _submitSmsCode() {
-    debugPrint("otpCode ${_otpController.text}");
-    if (_otpController.text.isNotEmpty) {
-      BlocProvider.of<CredentialCubit>(context)
-          .submitSmsCode(smsCode: _otpController.text);
-    }
   }
 }
