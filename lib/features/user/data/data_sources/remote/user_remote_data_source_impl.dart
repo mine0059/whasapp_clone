@@ -86,11 +86,27 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
   @override
   Stream<List<UserEntity>> getSingleUser(String uid) {
+    if (uid.isEmpty) {
+      debugPrint("ERROR: getSingleUser was called with an empty UID.");
+      return const Stream.empty();
+    }
     final userCollection = fireStore
         .collection(FirebaseCollectionConst.users)
         .where("uid", isEqualTo: uid);
     return userCollection.snapshots().map((querySnapshot) =>
         querySnapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList());
+
+    //Another way to do it below
+    // final userDoc =
+    //     fireStore.collection(FirebaseCollectionConst.users).doc(uid);
+
+    // return userDoc.snapshots().map((docSnapshot) {
+    //   if (docSnapshot.exists) {
+    //     return [UserModel.fromSnapshot(docSnapshot)];
+    //   } else {
+    //     return [];
+    //   }
+    // });
   }
 
   @override
