@@ -26,4 +26,7 @@ class PageConst {
 
   //  * edit profile page
   static const String editProfilePage = "editProfilePage";
+
+  //  * edit staus page
+  static const String editStatusPage = "editStatusPage";
 }
