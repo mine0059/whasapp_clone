@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:whatsapp_clone/features/app/home/home_page.dart';
 import 'package:whatsapp_clone/features/app/splash/splash_screen.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/auth/auth_cubit.dart';
@@ -56,7 +57,16 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         onGenerateRoute: OnGenerateRoutes.route,
         routes: {
-          '/': (context) => const SplashScreen(),
+          '/': (context) {
+            return BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, authState) {
+                if (authState is Authenticated) {
+                  return HomePage(uid: authState.uid);
+                }
+                return const SplashScreen();
+              },
+            );
+          },
         },
       ),
     );
