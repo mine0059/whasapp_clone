@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:whatsapp_clone/features/app/const/page_const.dart';
+import 'package:whatsapp_clone/features/app/global/widgets/dialog_widget.dart';
 import 'package:whatsapp_clone/features/app/global/widgets/profile_widget.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
+import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/auth/auth_cubit.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/get_single_user/get_single_user_cubit.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.uid});
@@ -12,6 +18,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  @override
+  void initState() {
+    BlocProvider.of<GetSingleUserCubit>(context).getSingleUser(uid: widget.uid);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,57 +45,132 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Column(
         children: [
           const SizedBox(height: 10),
-          InkWell(
-            onTap: () {
-              debugPrint("Profile Just got Clicked");
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: profileWidget(),
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          BlocBuilder<GetSingleUserCubit, GetSingleUserState>(
+            builder: (context, state) {
+              if (state is GetSingleUserLoaded) {
+                final singleUser = state.singleUser;
+                return InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      PageConst.editProfilePage,
+                      arguments: singleUser,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    child: Row(
                       children: [
-                        Text(
-                          "username",
-                          style: TextStyle(fontSize: 15),
+                        SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: profileWidget(),
                         ),
-                        Text(
-                          "status",
-                          style: TextStyle(color: greyColor),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "${singleUser.username}",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Text(
+                                "${singleUser.status}",
+                                style: TextStyle(color: greyColor),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.qr_code_sharp,
+                                color: tabColor,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.add_circle_outline,
+                                color: tabColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  Row(
+                );
+              }
+              return InkWell(
+                onTap: () {
+                  Navigator.pushNamed(context, PageConst.editProfilePage,
+                      arguments: const UserEntity(
+                          username: '',
+                          email: '',
+                          phoneNumber: '',
+                          isOnline: false,
+                          uid: '',
+                          status: '',
+                          profileUrl: ''));
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: Row(
                     children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.qr_code_sharp,
-                          color: tabColor,
+                      SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: profileWidget(),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "...",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            Text(
+                              "...",
+                              style: TextStyle(color: greyColor),
+                            ),
+                          ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.add_circle_outline,
-                          color: tabColor,
-                        ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.qr_code_sharp,
+                              color: tabColor,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.add_circle_outline,
+                              color: tabColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
           const Divider(),
           const SizedBox(height: 10),
@@ -109,7 +196,18 @@ class _SettingsPageState extends State<SettingsPage> {
             title: "Logout",
             description: "Logout, from WhatsApp Clone",
             icon: Icons.exit_to_app,
-            onTap: () {},
+            onTap: () {
+              displayAlertDialog(
+                context,
+                onTap: () {
+                  BlocProvider.of<AuthCubit>(context).loggedOut();
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, PageConst.welcomePage, (route) => false);
+                },
+                confirmTitle: "Logout",
+                content: "Are you sure you want to logout?",
+              );
+            },
           ),
         ],
       ),
