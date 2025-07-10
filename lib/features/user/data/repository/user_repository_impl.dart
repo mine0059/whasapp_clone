@@ -1,13 +1,18 @@
+import 'dart:io';
 import 'package:whatsapp_clone/features/user/data/data_sources/remote/user_remote_data_source.dart';
+import 'package:whatsapp_clone/features/user/data/repository/storage_repository_impl.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/contact_entity.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
+import 'package:whatsapp_clone/features/user/domain/repository/storage_repository.dart';
 import 'package:whatsapp_clone/features/user/domain/repository/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
+  final StorageRepository storageRepository;
 
   UserRepositoryImpl({
     required this.remoteDataSource,
+    required this.storageRepository,
   });
 
   @override
@@ -45,4 +50,48 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<void> verifyPhoneNumber(String phoneNumber) async =>
       remoteDataSource.verifyPhoneNumber(phoneNumber);
+
+  // Storage methods
+  @override
+  Future<String> uploadProfileImage({
+    required File file,
+    Function(bool isUploading)? onComplete,
+  }) async {
+    return await storageRepository.uploadProfileImage(
+      file: file,
+      onComplete: onComplete,
+    );
+  }
+
+  @override
+  Future<List<String>> uploadStatuses({
+    required List<File> files,
+    Function(bool isUploading)? onComplete,
+    String? description,
+  }) async {
+    return await storageRepository.uploadStatuses(
+      files: files,
+      onComplete: onComplete,
+      description: description,
+    );
+  }
+
+  @override
+  Future<String> uploadMessageFile({
+    required File file,
+    Function(bool isUploading)? onComplete,
+    String? uid,
+    String? otherUid,
+    String? type,
+    String? chatId,
+  }) async {
+    return await storageRepository.uploadMessageFile(
+      file: file,
+      onComplete: onComplete,
+      uid: uid,
+      otherUid: otherUid,
+      type: type,
+      chatId: chatId,
+    );
+  }
 }

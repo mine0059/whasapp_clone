@@ -1,6 +1,8 @@
 import 'package:whatsapp_clone/features/user/data/data_sources/remote/user_remote_data_source.dart';
 import 'package:whatsapp_clone/features/user/data/data_sources/remote/user_remote_data_source_impl.dart';
+import 'package:whatsapp_clone/features/user/data/repository/storage_repository_impl.dart';
 import 'package:whatsapp_clone/features/user/data/repository/user_repository_impl.dart';
+import 'package:whatsapp_clone/features/user/domain/repository/storage_repository.dart';
 import 'package:whatsapp_clone/features/user/domain/repository/user_repository.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/credential/get_current_uid_usecase.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/credential/is_sign_in_usecase.dart';
@@ -12,6 +14,7 @@ import 'package:whatsapp_clone/features/user/domain/usecases/user/get_all_users_
 import 'package:whatsapp_clone/features/user/domain/usecases/user/get_device_number_usecase.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/user/get_single_user_usecase.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/user/update_user_usecase.dart';
+import 'package:whatsapp_clone/features/user/domain/usecases/user/upload_profile_image_usecase.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/auth/auth_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/get_device_number/get_device_number_cubit.dart';
@@ -39,7 +42,8 @@ Future<void> userInjectionContainer() async {
   sl.registerFactory<CredentialCubit>(() => CredentialCubit(
       createUserUsecase: sl.call(),
       signInWithPhoneNumberUsecase: sl.call(),
-      verifyPhoneNumberUsecase: sl.call()));
+      verifyPhoneNumberUsecase: sl.call(),
+      uploadProfileImageUsecase: sl.call()));
 
   sl.registerFactory<GetDeviceNumberCubit>(
       () => GetDeviceNumberCubit(getDeviceNumberUsecase: sl.call()));
@@ -75,10 +79,19 @@ Future<void> userInjectionContainer() async {
   sl.registerLazySingleton<GetDeviceNumberUsecase>(
       () => GetDeviceNumberUsecase(repository: sl.call()));
 
+  sl.registerLazySingleton<UploadProfileImageUsecase>(
+      () => UploadProfileImageUsecase(repository: sl.call()));
+
   // * REPOSITORY & DATA SOURCES INJECTION
 
+  sl.registerLazySingleton<StorageRepository>(
+      () => StorageRepositoryImpl());
+
   sl.registerLazySingleton<UserRepository>(
-      () => UserRepositoryImpl(remoteDataSource: sl.call()));
+      () => UserRepositoryImpl(
+        remoteDataSource: sl.call(),
+        storageRepository: sl.call(),
+      ));
 
   sl.registerLazySingleton<UserRemoteDataSource>(() => UserRemoteDataSourceImpl(
         auth: sl.call(),
