@@ -8,7 +8,6 @@ import 'package:whatsapp_clone/features/app/global/widgets/profile_widget.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
-import 'package:whatsapp_clone/storage/storage_provider.dart';
 
 class InitialProfileSubmitPage extends StatefulWidget {
   const InitialProfileSubmitPage({super.key, required this.phoneNumber});
@@ -127,14 +126,21 @@ class _InitialProfileSubmitPageState extends State<InitialProfileSubmitPage> {
 
   void submitProfileInfo() {
     if (_image != null) {
-      StorageProviderRemoteDatasource.uploadProfileImage(
-          file: _image!,
-          onComplete: (onProfileUpdateComplete) {
-            setState(() {
-              _isProfileUpdating = onProfileUpdateComplete;
-            });
-          }).then((profileImageUrl) {
+      BlocProvider.of<CredentialCubit>(context)
+          .uploadProfileImage(
+              file: _image!,
+              onComplete: (onProfileUpdateComplete) {
+                setState(() {
+                  _isProfileUpdating = onProfileUpdateComplete;
+                });
+              })
+          .then((profileImageUrl) {
         _profileInfo(profileUrl: profileImageUrl);
+      }).catchError((error) {
+        setState(() {
+          _isProfileUpdating = false;
+        });
+        toast("Failed to upload profile image: $error");
       });
     } else {
       _profileInfo(profileUrl: "");
