@@ -28,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text("Settings"),
         actions: [
           IconButton(
@@ -41,6 +42,13 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: greyColor.withOpacity(0.15),
+            height: 1.0,
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -66,7 +74,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         SizedBox(
                           width: 50,
                           height: 50,
-                          child: profileWidget(),
+                          child: ClipRRect(
+                              borderRadius: BorderRadius.circular(25),
+                              child: profileWidget(
+                                  imageUrl: singleUser.profileUrl)),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -75,11 +86,11 @@ class _SettingsPageState extends State<SettingsPage> {
                             children: [
                               Text(
                                 "${singleUser.username}",
-                                style: TextStyle(fontSize: 15),
+                                style: const TextStyle(fontSize: 15),
                               ),
                               Text(
                                 "${singleUser.status}",
-                                style: TextStyle(color: greyColor),
+                                style: const TextStyle(color: greyColor),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -172,7 +183,9 @@ class _SettingsPageState extends State<SettingsPage> {
               );
             },
           ),
-          const Divider(),
+          Divider(
+            color: greyColor.withOpacity(0.17),
+          ),
           const SizedBox(height: 10),
           _settingsItemWidget(
             title: "Account",
