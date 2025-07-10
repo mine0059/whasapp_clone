@@ -9,10 +9,10 @@ import 'package:whatsapp_clone/features/app/global/widgets/dialog_widget.dart';
 import 'package:whatsapp_clone/features/app/global/widgets/profile_widget.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/user/user_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/pages/edit_name_page.dart';
 import 'package:whatsapp_clone/features/user/presentation/pages/image_preview_page.dart';
-import 'package:whatsapp_clone/storage/storage_provider.dart';
 
 class EditProfilePage extends StatefulWidget {
   final UserEntity currentUser;
@@ -29,7 +29,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   File? _image;
   bool _isProfileUpdating = false;
 
-  Future selectImage() async {
+  Future selectGaleryImage() async {
     try {
       final pickedFile = await ImagePicker.platform
           .getImageFromSource(source: ImageSource.gallery);
@@ -38,7 +38,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _image = File(pickedFile.path);
           _isProfileUpdating = true;
         });
-        submitProfilePhoto();
+        submitNewProfilePhoto();
       } else {
         debugPrint("no image has been selected");
       }
@@ -60,10 +60,131 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: const Text("Profile"),
+  //     ),
+  //     body: SingleChildScrollView(
+  //       child: Column(
+  //         children: [
+  //           Center(
+  //             child: Column(
+  //               children: [
+  //                 Container(
+  //                   width: 170,
+  //                   height: 170,
+  //                   margin: const EdgeInsets.symmetric(
+  //                       horizontal: 10, vertical: 20),
+  //                   decoration: BoxDecoration(
+  //                     shape: BoxShape.circle,
+  //                     border: Border.all(
+  //                         color: greyColor, width: 2), // Border added here
+  //                   ),
+  //                   child: Stack(
+  //                     alignment: Alignment.center,
+  //                     children: [
+  //                       GestureDetector(
+  //                         onTap: () {
+  //                           Navigator.push(
+  //                             context,
+  //                             MaterialPageRoute(
+  //                               builder: (_) => ImagePreviewPage(
+  //                                 currentUser: widget.currentUser,
+  //                               ),
+  //                             ),
+  //                           );
+  //                         },
+  //                         child: Hero(
+  //                           tag: "profileImage",
+  //                           child: ClipRRect(
+  //                             borderRadius: BorderRadius.circular(75),
+  //                             child: profileWidget(
+  //                               imageUrl: widget.currentUser.profileUrl,
+  //                               image: _image,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       if (_isProfileUpdating)
+  //                         const CircularProgressIndicator(
+  //                           color: tabColor,
+  //                           strokeWidth: 3,
+  //                         )
+  //                     ],
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 10),
+  //                 TextButton(
+  //                   onPressed: () {
+  //                     final parentContext = context;
+  //                     _showBottomSheet(parentContext);
+  //                   },
+  //                   child: const Text(
+  //                     "Edit",
+  //                     style: TextStyle(
+  //                         fontSize: 15,
+  //                         fontWeight: FontWeight.bold,
+  //                         color: tabColor),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           const SizedBox(height: 10),
+  //           _profileItem(
+  //             title: "Name",
+  //             username: widget.currentUser.username,
+  //             icon: Icons.person_2_outlined,
+  //             onTap: () {
+  //               Navigator.push(
+  //                   context,
+  //                   MaterialPageRoute(
+  //                     builder: (context) =>
+  //                         EditNamePage(currentUser: widget.currentUser),
+  //                   ));
+  //             },
+  //           ),
+  //           _profileItem(
+  //             title: "About",
+  //             username: widget.currentUser.status,
+  //             icon: Icons.info_outline,
+  //             onTap: () {
+  //               Navigator.pushNamed(context, PageConst.editStatusPage,
+  //                   arguments: widget.currentUser);
+  //             },
+  //           ),
+  //           _profileItem(
+  //             title: "Phone",
+  //             username: widget.currentUser.phoneNumber,
+  //             icon: Icons.phone_outlined,
+  //             onTap: () {},
+  //           ),
+  //           _profileItem(
+  //             title: "Links",
+  //             username: "Add links",
+  //             icon: Icons.link,
+  //             onTap: () {},
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+  // Updated build method for EditProfilePage
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text("Profile"),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: greyColor.withOpacity(0.17), // light grey divider line
+            height: 1.0,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -78,8 +199,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         horizontal: 10, vertical: 20),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                          color: greyColor, width: 2), // Border added here
+                      border: Border.all(color: greyColor, width: 2),
                     ),
                     child: Stack(
                       alignment: Alignment.center,
@@ -91,26 +211,46 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               MaterialPageRoute(
                                 builder: (_) => ImagePreviewPage(
                                   currentUser: widget.currentUser,
+                                  heroTag: "profileImage",
                                 ),
                               ),
                             );
                           },
                           child: Hero(
                             tag: "profileImage",
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(75),
-                              child: profileWidget(
-                                imageUrl: widget.currentUser.profileUrl,
-                                image: _image,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    85), // Slightly larger than 75 to account for border
+                                child: profileWidget(
+                                  imageUrl: widget.currentUser.profileUrl,
+                                  image: _image,
+                                  width:
+                                      166, // Container width minus border (170 - 4)
+                                  height:
+                                      166, // Container height minus border (170 - 4)
+                                  isCircular: true,
+                                ),
                               ),
                             ),
                           ),
                         ),
                         if (_isProfileUpdating)
-                          const CircularProgressIndicator(
-                            color: tabColor,
-                            strokeWidth: 3,
-                          )
+                          Container(
+                            width: 166,
+                            height: 166,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: tabColor,
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -312,7 +452,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           //   MaterialPageRoute(builder: (context) => const CameraScreen()),
           // );
         } else if (text == "Gallery") {
-          selectImage();
+          selectGaleryImage();
         } else {
           // Handle other icon taps if needed
         }
@@ -353,15 +493,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  void submitProfilePhoto() {
+  void submitNewProfilePhoto() {
     if (_image != null) {
-      StorageProviderRemoteDatasource.uploadProfileImage(
-          file: _image!,
-          onComplete: (onProfileUpdateComplete) {
-            setState(() {
-              _isProfileUpdating = onProfileUpdateComplete;
-            });
-          }).then((profileImageUrl) {
+      BlocProvider.of<CredentialCubit>(context)
+          .uploadProfileImage(
+              file: _image!,
+              onComplete: (onProfileUpdateComplete) {
+                setState(() {
+                  _isProfileUpdating = onProfileUpdateComplete;
+                });
+              })
+          .then((profileImageUrl) {
         BlocProvider.of<UserCubit>(context)
             .updateUser(
                 user: UserEntity(
@@ -383,13 +525,53 @@ class _EditProfilePageState extends State<EditProfilePage> {
           setState(() {
             _isProfileUpdating = false;
           });
-        });
-      }).catchError((e) {
-        toast("Error uploading Image: $e");
-        setState(() {
-          _isProfileUpdating = false;
+        }).catchError((e) {
+          toast("Error uploading Image: $e");
+          setState(() {
+            _isProfileUpdating = false;
+          });
         });
       });
     }
   }
+
+  // void submitProfilePhoto() {
+  //   if (_image != null) {
+  //     StorageProviderRemoteDatasource.uploadProfileImage(
+  //         file: _image!,
+  //         onComplete: (onProfileUpdateComplete) {
+  //           setState(() {
+  //             _isProfileUpdating = onProfileUpdateComplete;
+  //           });
+  //         }).then((profileImageUrl) {
+  //       BlocProvider.of<UserCubit>(context)
+  //           .updateUser(
+  //               user: UserEntity(
+  //         uid: widget.currentUser.uid,
+  //         email: "",
+  //         username: widget.currentUser.username,
+  //         phoneNumber: widget.currentUser.phoneNumber,
+  //         status: widget.currentUser.status,
+  //         isOnline: false,
+  //         profileUrl: profileImageUrl,
+  //       ))
+  //           .then((_) {
+  //         toast("Profile photo updated");
+  //         setState(() {
+  //           _isProfileUpdating = false; // Stop spinner after update
+  //         });
+  //       }).catchError((e) {
+  //         toast("Error updating profile: $e");
+  //         setState(() {
+  //           _isProfileUpdating = false;
+  //         });
+  //       });
+  //     }).catchError((e) {
+  //       toast("Error uploading Image: $e");
+  //       setState(() {
+  //         _isProfileUpdating = false;
+  //       });
+  //     });
+  //   }
+  // }
 }
