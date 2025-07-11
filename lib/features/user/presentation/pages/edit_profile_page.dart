@@ -11,6 +11,7 @@ import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/user/user_cubit.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/get_single_user/get_single_user_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/pages/edit_name_page.dart';
 import 'package:whatsapp_clone/features/user/presentation/pages/image_preview_page.dart';
 
@@ -24,8 +25,6 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  TextEditingController _aboutController = TextEditingController();
-
   File? _image;
   bool _isProfileUpdating = false;
 
@@ -49,129 +48,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void initState() {
-    _aboutController = TextEditingController(text: widget.currentUser.status);
+    // Initialize the cubit with current user data
+    BlocProvider.of<GetSingleUserCubit>(context)
+        .getSingleUser(uid: widget.currentUser.uid!);
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _aboutController.dispose();
-    super.dispose();
-  }
-
-  @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: const Text("Profile"),
-  //     ),
-  //     body: SingleChildScrollView(
-  //       child: Column(
-  //         children: [
-  //           Center(
-  //             child: Column(
-  //               children: [
-  //                 Container(
-  //                   width: 170,
-  //                   height: 170,
-  //                   margin: const EdgeInsets.symmetric(
-  //                       horizontal: 10, vertical: 20),
-  //                   decoration: BoxDecoration(
-  //                     shape: BoxShape.circle,
-  //                     border: Border.all(
-  //                         color: greyColor, width: 2), // Border added here
-  //                   ),
-  //                   child: Stack(
-  //                     alignment: Alignment.center,
-  //                     children: [
-  //                       GestureDetector(
-  //                         onTap: () {
-  //                           Navigator.push(
-  //                             context,
-  //                             MaterialPageRoute(
-  //                               builder: (_) => ImagePreviewPage(
-  //                                 currentUser: widget.currentUser,
-  //                               ),
-  //                             ),
-  //                           );
-  //                         },
-  //                         child: Hero(
-  //                           tag: "profileImage",
-  //                           child: ClipRRect(
-  //                             borderRadius: BorderRadius.circular(75),
-  //                             child: profileWidget(
-  //                               imageUrl: widget.currentUser.profileUrl,
-  //                               image: _image,
-  //                             ),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       if (_isProfileUpdating)
-  //                         const CircularProgressIndicator(
-  //                           color: tabColor,
-  //                           strokeWidth: 3,
-  //                         )
-  //                     ],
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 10),
-  //                 TextButton(
-  //                   onPressed: () {
-  //                     final parentContext = context;
-  //                     _showBottomSheet(parentContext);
-  //                   },
-  //                   child: const Text(
-  //                     "Edit",
-  //                     style: TextStyle(
-  //                         fontSize: 15,
-  //                         fontWeight: FontWeight.bold,
-  //                         color: tabColor),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           const SizedBox(height: 10),
-  //           _profileItem(
-  //             title: "Name",
-  //             username: widget.currentUser.username,
-  //             icon: Icons.person_2_outlined,
-  //             onTap: () {
-  //               Navigator.push(
-  //                   context,
-  //                   MaterialPageRoute(
-  //                     builder: (context) =>
-  //                         EditNamePage(currentUser: widget.currentUser),
-  //                   ));
-  //             },
-  //           ),
-  //           _profileItem(
-  //             title: "About",
-  //             username: widget.currentUser.status,
-  //             icon: Icons.info_outline,
-  //             onTap: () {
-  //               Navigator.pushNamed(context, PageConst.editStatusPage,
-  //                   arguments: widget.currentUser);
-  //             },
-  //           ),
-  //           _profileItem(
-  //             title: "Phone",
-  //             username: widget.currentUser.phoneNumber,
-  //             icon: Icons.phone_outlined,
-  //             onTap: () {},
-  //           ),
-  //           _profileItem(
-  //             title: "Links",
-  //             username: "Add links",
-  //             icon: Icons.link,
-  //             onTap: () {},
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-  // Updated build method for EditProfilePage
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,128 +68,137 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    width: 170,
-                    height: 170,
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: greyColor, width: 2),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ImagePreviewPage(
-                                  currentUser: widget.currentUser,
-                                  heroTag: "profileImage",
-                                ),
-                              ),
-                            );
-                          },
-                          child: Hero(
-                            tag: "profileImage",
-                            child: Material(
-                              color: Colors.transparent,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    85), // Slightly larger than 75 to account for border
-                                child: profileWidget(
-                                  imageUrl: widget.currentUser.profileUrl,
-                                  image: _image,
-                                  width:
-                                      166, // Container width minus border (170 - 4)
-                                  height:
-                                      166, // Container height minus border (170 - 4)
-                                  isCircular: true,
-                                ),
-                              ),
-                            ),
-                          ),
+      body: BlocBuilder<GetSingleUserCubit, GetSingleUserState>(
+        builder: (context, state) {
+          // Use updated user data if available, otherwise fallback to widget.currentUser
+          final currentUser = state is GetSingleUserLoaded
+              ? state.singleUser
+              : widget.currentUser;
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 170,
+                        height: 170,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: greyColor, width: 2),
                         ),
-                        if (_isProfileUpdating)
-                          Container(
-                            width: 166,
-                            height: 166,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: tabColor,
-                                strokeWidth: 3,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ImagePreviewPage(
+                                      currentUser: currentUser,
+                                      heroTag: "profileImage",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Hero(
+                                tag: "profileImage",
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                        85), // Slightly larger than 75 to account for border
+                                    child: profileWidget(
+                                      imageUrl: currentUser.profileUrl,
+                                      image: _image,
+                                      width:
+                                          166, // Container width minus border (170 - 4)
+                                      height:
+                                          166, // Container height minus border (170 - 4)
+                                      isCircular: true,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
+                            if (_isProfileUpdating)
+                              Container(
+                                width: 166,
+                                height: 166,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.3),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: tabColor,
+                                    strokeWidth: 3,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () {
+                          final parentContext = context;
+                          _showBottomSheet(parentContext);
+                        },
+                        child: const Text(
+                          "Edit",
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: tabColor),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () {
-                      final parentContext = context;
-                      _showBottomSheet(parentContext);
-                    },
-                    child: const Text(
-                      "Edit",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: tabColor),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10),
+                _profileItem(
+                  title: "Name",
+                  username: currentUser.username,
+                  icon: Icons.person_2_outlined,
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EditNamePage(currentUser: currentUser),
+                        ));
+                  },
+                ),
+                _profileItem(
+                  title: "About",
+                  username: currentUser.status,
+                  icon: Icons.info_outline,
+                  onTap: () {
+                    Navigator.pushNamed(context, PageConst.editStatusPage,
+                        arguments: currentUser);
+                  },
+                ),
+                _profileItem(
+                  title: "Phone",
+                  username: currentUser.phoneNumber,
+                  icon: Icons.phone_outlined,
+                  onTap: () {},
+                ),
+                _profileItem(
+                  title: "Links",
+                  username: "Add links",
+                  icon: Icons.link,
+                  onTap: () {},
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            _profileItem(
-              title: "Name",
-              username: widget.currentUser.username,
-              icon: Icons.person_2_outlined,
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          EditNamePage(currentUser: widget.currentUser),
-                    ));
-              },
-            ),
-            _profileItem(
-              title: "About",
-              username: widget.currentUser.status,
-              icon: Icons.info_outline,
-              onTap: () {
-                Navigator.pushNamed(context, PageConst.editStatusPage,
-                    arguments: widget.currentUser);
-              },
-            ),
-            _profileItem(
-              title: "Phone",
-              username: widget.currentUser.phoneNumber,
-              icon: Icons.phone_outlined,
-              onTap: () {},
-            ),
-            _profileItem(
-              title: "Links",
-              username: "Add links",
-              icon: Icons.link,
-              onTap: () {},
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -516,6 +407,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           profileUrl: profileImageUrl,
         ))
             .then((_) {
+          // Refresh the single user data to reflect changes
+          BlocProvider.of<GetSingleUserCubit>(context)
+              .getSingleUser(uid: widget.currentUser.uid!);
           toast("Profile photo updated");
           setState(() {
             _isProfileUpdating = false; // Stop spinner after update
@@ -534,44 +428,4 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
     }
   }
-
-  // void submitProfilePhoto() {
-  //   if (_image != null) {
-  //     StorageProviderRemoteDatasource.uploadProfileImage(
-  //         file: _image!,
-  //         onComplete: (onProfileUpdateComplete) {
-  //           setState(() {
-  //             _isProfileUpdating = onProfileUpdateComplete;
-  //           });
-  //         }).then((profileImageUrl) {
-  //       BlocProvider.of<UserCubit>(context)
-  //           .updateUser(
-  //               user: UserEntity(
-  //         uid: widget.currentUser.uid,
-  //         email: "",
-  //         username: widget.currentUser.username,
-  //         phoneNumber: widget.currentUser.phoneNumber,
-  //         status: widget.currentUser.status,
-  //         isOnline: false,
-  //         profileUrl: profileImageUrl,
-  //       ))
-  //           .then((_) {
-  //         toast("Profile photo updated");
-  //         setState(() {
-  //           _isProfileUpdating = false; // Stop spinner after update
-  //         });
-  //       }).catchError((e) {
-  //         toast("Error updating profile: $e");
-  //         setState(() {
-  //           _isProfileUpdating = false;
-  //         });
-  //       });
-  //     }).catchError((e) {
-  //       toast("Error uploading Image: $e");
-  //       setState(() {
-  //         _isProfileUpdating = false;
-  //       });
-  //     });
-  //   }
-  // }
 }
