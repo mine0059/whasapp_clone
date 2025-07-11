@@ -5,6 +5,7 @@ import 'package:whatsapp_clone/features/app/const/app_const.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/user/user_cubit.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/get_single_user/get_single_user_cubit.dart';
 
 class EditNamePage extends StatefulWidget {
   const EditNamePage({super.key, required this.currentUser});
@@ -133,6 +134,9 @@ class _EditNamePageState extends State<EditNamePage> {
         profileUrl: widget.currentUser.profileUrl,
       ))
           .then((_) {
+        // Refresh the single user data to reflect changes
+        BlocProvider.of<GetSingleUserCubit>(context)
+            .getSingleUser(uid: widget.currentUser.uid!);
         toast("username updated");
       }).catchError((e) {
         toast("Error updating username: $e");

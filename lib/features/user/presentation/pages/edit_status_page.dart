@@ -6,6 +6,7 @@ import 'package:whatsapp_clone/features/app/const/app_const.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/user/user_cubit.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/get_single_user/get_single_user_cubit.dart';
 
 class EditStatusPage extends StatefulWidget {
   const EditStatusPage({super.key, required this.currentUser});
@@ -357,6 +358,9 @@ class _EditStatusPageState extends State<EditStatusPage> {
         profileUrl: widget.currentUser.profileUrl,
       ))
           .then((_) {
+        // Refresh the single user data to reflect changes
+        BlocProvider.of<GetSingleUserCubit>(context)
+            .getSingleUser(uid: widget.currentUser.uid!);
         toast("status updated");
       }).catchError((e) {
         toast("Error updating status: $e");
