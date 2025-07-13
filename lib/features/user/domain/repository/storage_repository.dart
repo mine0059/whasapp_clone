@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:whatsapp_clone/features/chat/data/models/message_file_info.dart';
+import 'package:whatsapp_clone/features/chat/data/models/message_file_upload_result.dart';
 
 abstract class StorageRepository {
   Future<String> uploadProfileImage({
@@ -12,23 +14,67 @@ abstract class StorageRepository {
     String? description,
   });
 
-  Future<String> uploadMessageFile({
+  Future<MessageFileUploadResult> uploadMessageFile({
     required File file,
+    required String messageId,
+    required String chatId,
+    String? messageType,
     Function(bool isUploading)? onComplete,
-    String? uid,
-    String? otherUid,
-    String? type,
-    String? chatId,
+    Function(double progress)? onProgress,
   });
 
-  Future<bool> deleteFile(String fileId);
+  Future<bool> deleteFile({
+    required String fileId,
+    String? messageId,
+    String? chatId,
+  });
   
-  Future<Map<String, dynamic>> getFileInfo(String fileId);
+  Future<MessageFileInfo> getFileInfo({
+    required String fileId,
+    String? messageId,
+    String? chatId,
+  });
   
-  Future<List<Map<String, dynamic>>> getUserFiles({
+  Future<List<MessageFileInfo>> getUserFiles({
     int limit = 20,
     int offset = 0,
     String? mimeType,
     String? chatId,
+  });
+
+  Future<bool> linkFileToMessage({
+    required String fileId,
+    required String messageId,
+    required String chatId,
+  });
+
+  Future<List<MessageFileInfo>> getMessageFiles({
+    required String messageId,
+    String? chatId,
+  });
+
+  Future<bool> updateMessageFileStatus({
+    required String messageId,
+    required String status,
+    required String chatId,
+    String? fileId,
+  });
+
+  Future<String> uploadWithProgress({
+    required File file,
+    required String uploadType,
+    required String category,
+    Function(double progress)? onProgress,
+    Function(bool isUploading)? onComplete,
+    Map<String, String>? additionalFields,
+  });
+
+  Future<MessageFileUploadResult> uploadMessageFileWithProgress({
+    required File file,
+    required String messageId,
+    required String chatId,
+    String? messageType,
+    Function(double progress)? onProgress,
+    Function(bool isUploading)? onComplete,
   });
 }
