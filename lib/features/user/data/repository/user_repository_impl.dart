@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:whatsapp_clone/features/chat/data/models/message_file_upload_result.dart';
 import 'package:whatsapp_clone/features/user/data/data_sources/remote/user_remote_data_source.dart';
 import 'package:whatsapp_clone/features/user/data/repository/storage_repository_impl.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/contact_entity.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/domain/repository/storage_repository.dart';
 import 'package:whatsapp_clone/features/user/domain/repository/user_repository.dart';
+import 'package:whatsapp_clone/storage/express_storage_provider.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
@@ -77,21 +79,21 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<String> uploadMessageFile({
+  Future<MessageFileUploadResult> uploadMessageFile({
     required File file,
+    required String messageId,
+    required String chatId,
+    String? messageType,
     Function(bool isUploading)? onComplete,
-    String? uid,
-    String? otherUid,
-    String? type,
-    String? chatId,
+    Function(double progress)? onProgress,
   }) async {
-    return await storageRepository.uploadMessageFile(
+    return await ExpressStorageProvider.uploadMessageFile(
       file: file,
-      onComplete: onComplete,
-      uid: uid,
-      otherUid: otherUid,
-      type: type,
+      messageId: messageId,
       chatId: chatId,
+      messageType: messageType,
+      onComplete: onComplete,
+      onProgress: onProgress,
     );
   }
 }

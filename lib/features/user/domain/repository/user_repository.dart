@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:whatsapp_clone/features/chat/data/models/message_file_upload_result.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/contact_entity.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 
@@ -28,12 +29,12 @@ abstract class UserRepository {
     String? description,
   });
 
-  Future<String> uploadMessageFile({
+  Future<MessageFileUploadResult> uploadMessageFile({
     required File file,
+    required String messageId,
+    required String chatId,
+    String? messageType,
     Function(bool isUploading)? onComplete,
-    String? uid,
-    String? otherUid,
-    String? type,
-    String? chatId,
+    Function(double progress)? onProgress,
   });
 }
