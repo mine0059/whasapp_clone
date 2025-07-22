@@ -5,6 +5,11 @@ import 'package:swipe_to/swipe_to.dart';
 import 'package:whatsapp_clone/features/app/global/widgets/profile_widget.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:whatsapp_clone/features/chat/presentation/widgets/chat_text_field.dart';
+import 'package:whatsapp_clone/features/chat/presentation/widgets/message_bubble_paint.dart';
+import 'package:whatsapp_clone/features/chat/presentation/widgets/message_card.dart';
+import 'package:whatsapp_clone/features/chat/presentation/widgets/show_date_card.dart';
+import 'package:whatsapp_clone/features/chat/presentation/widgets/yellow_card.dart';
 
 class SingleChatPage extends StatefulWidget {
   const SingleChatPage({super.key, required this.uid});
@@ -142,6 +147,10 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 Expanded(
                   child: ListView(
                     children: [
+                      ShowDateCard(
+                        date: Timestamp.now().toDate(),
+                      ),
+                      const YellowCard(),
                       _messageLayout(
                           messageBgColor: messageColor,
                           alignment: Alignment.centerRight,
@@ -204,8 +213,49 @@ class _SingleChatPageState extends State<SingleChatPage> {
                           onLongPress: () {},
                           onSwipe: () {},
                           isMe: false),
+                      MessageCard(
+                        message: "This is a text chat",
+                        createdAt: Timestamp.now(),
+                        isShowTick: true,
+                        isSeen: false,
+                        onLongPress: () {},
+                        onSwipe: () {},
+                        isMe: true,
+                      ),
+                      MessageCard(
+                        message:
+                            "This is a long text chat that is used for building text application and it going to work we all know that its going to work with the way we have been using the contrains",
+                        createdAt: Timestamp.now(),
+                        isShowTick: true,
+                        isSeen: true,
+                        onLongPress: () {},
+                        onSwipe: () {},
+                        isMe: false,
+                      ),
+                      MessageCard(
+                        message: "Hello",
+                        createdAt: Timestamp.now(),
+                        isShowTick: true,
+                        isSeen: false,
+                        onLongPress: () {},
+                        onSwipe: () {},
+                        isMe: true,
+                      ),
+                      MessageCard(
+                        message:
+                            "This is a long text chat that is used for building text application and it going to work we all know that its going to work with the way we have been using the contrains threhhehhehehhshaijfoe uejirhiejreiriej ejiuhrerhehrije ehruheurhuehrjher eurhuheruhiehrihe euihirhiehre rhierhineir re e0re0  eryyr0 e uerreurur  ruureu eruieruieriuer eueruierueru eeruieruiruiue0r e ruereruieruuiuer eruerieruieuir",
+                        createdAt: Timestamp.now(),
+                        isShowTick: true,
+                        isSeen: true,
+                        onLongPress: () {},
+                        onSwipe: () {},
+                        isMe: false,
+                      ),
                     ],
                   ),
+                ),
+                const ChatTextField(
+                  receiverId: 'thrhre',
                 ),
                 Container(
                   margin: const EdgeInsets.only(
@@ -309,7 +359,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
               ],
             ),
             _isShowAttachmentButton == true
@@ -464,7 +514,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
                             ),
                           ),
                           if (isShowTick == true) ...[
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 2),
                             Icon(
                               isSeen == true ? Icons.done_all : Icons.done,
                               color: isSeen == true
@@ -528,197 +578,3 @@ class _SingleChatPageState extends State<SingleChatPage> {
     );
   }
 }
-
-// Custom painter for WhatsApp-style message bubbles with tail
-class MessageBubblePainter extends CustomPainter {
-  final Color color;
-  final bool isMe;
-
-  MessageBubblePainter({required this.color, required this.isMe});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-
-    if (isMe) {
-      // Right-side bubble (my messages)
-      path.addRRect(
-        RRect.fromLTRBAndCorners(
-          0,
-          0,
-          size.width - 10,
-          size.height,
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(2),
-          bottomLeft: const Radius.circular(18),
-          bottomRight: const Radius.circular(18),
-        ),
-      );
-
-      // Add the tail pointing right
-      path.moveTo(size.width - 10, 10);
-      path.lineTo(size.width, 0); // Points to top
-      path.lineTo(size.width - 10, 0);
-      path.close();
-    } else {
-      // Left-side bubble (other person's messages)
-      path.addRRect(
-        RRect.fromLTRBAndCorners(
-          10,
-          0,
-          size.width,
-          size.height,
-          topLeft: const Radius.circular(0),
-          topRight: const Radius.circular(18),
-          bottomLeft: const Radius.circular(18),
-          bottomRight: const Radius.circular(18),
-        ),
-      );
-
-      // Add the tail pointing left
-      path.moveTo(10, 10);
-      path.lineTo(0, 0); // Points to top
-      path.lineTo(10, 0);
-      path.close();
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-
-
-// this commented out code is the chat message box(container) design we have to patern here should in case we want to make use of any of them later 
-// below is the one 
-// child: Stack(
-//   children: [
-//     // FIX 5: STACK-BASED APPROACH - Text flows naturally, time/tick positioned absolutely
-//     Padding(
-//       padding: const EdgeInsets.only(
-//           bottom: 20), // Space for time/tick row
-//       child: Text(
-//         message!,
-//         style: const TextStyle(
-//           fontSize: 16,
-//           color: Colors.white,
-//           height: 1.3,
-//         ),
-//       ),
-//     ),
-
-//     // FIX 6: ABSOLUTE POSITIONING - Time/ticks positioned at bottom right
-//     Positioned(
-//       bottom: 0,
-//       right: 0,
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           Text(
-//             DateFormat.jm().format(createdAt!.toDate()),
-//             style: const TextStyle(
-//               fontSize: 12,
-//               color: Color(0xFFB3B3B3),
-//             ),
-//           ),
-//           if (isShowTick == true) ...[
-//             const SizedBox(width: 4),
-//             Icon(
-//               isSeen == true ? Icons.done_all : Icons.done,
-//               color: isSeen == true
-//                   ? const Color(0xFF53BDEB)
-//                   : const Color(0xFFB3B3B3),
-//               size: 16,
-//             ),
-//           ],
-//         ],
-//       ),
-//     ),
-//   ],
-// ),
-
-
-// This is the initial code for the message layout that was commented out.
-// This code is not used in the current implementation but can be used later for replacement if needed.
-// _messageLayout({
-  //   Color? messageBgColor,
-  //   Alignment? alignment,
-  //   Timestamp? createdAt,
-  //   VoidCallback? onSwipe,
-  //   // double? rightPadding,
-  //   String? message,
-  //   bool? isShowTick,
-  //   bool? isSeen,
-  //   VoidCallback? onLongPress,
-  //   required bool isMe,
-  // }) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 5),
-  //     child: SwipeTo(
-  //         onRightSwipe: onSwipe != null ? (details) => onSwipe() : null,
-  //         child: GestureDetector(
-  //           onLongPress: onLongPress,
-  //           child: Container(
-  //             alignment: alignment,
-  //             child: Stack(
-  //               children: [
-  //                 Column(
-  //                   children: [
-  //                     Container(
-  //                       margin: const EdgeInsets.only(top: 10),
-  //                       padding: const EdgeInsets.only(
-  //                           left: 5, right: 85, top: 5, bottom: 5),
-  //                       constraints: BoxConstraints(
-  //                         maxWidth: MediaQuery.of(context).size.width * 0.80,
-  //                       ),
-  //                       decoration: BoxDecoration(
-  //                         color: messageBgColor,
-  //                         borderRadius: BorderRadius.circular(8),
-  //                       ),
-  //                       child: Text(
-  //                         "$message",
-  //                         style: const TextStyle(
-  //                           fontSize: 16,
-  //                           color: Colors.white,
-  //                         ),
-  //                         // textAlign: TextAlign.start,
-  //                       ),
-  //                     ),
-  //                     const SizedBox(height: 3),
-  //                   ],
-  //                 ),
-  //                 Positioned(
-  //                     bottom: 4,
-  //                     right: 10,
-  //                     child: Row(
-  //                       children: [
-  //                         Text(
-  //                           DateFormat.jm().format(createdAt!.toDate()),
-  //                           style: const TextStyle(
-  //                             fontSize: 12,
-  //                             color: greyColor,
-  //                           ),
-  //                         ),
-  //                         const SizedBox(width: 5),
-  //                         isShowTick == true
-  //                             ? Icon(
-  //                                 isSeen == true ? Icons.done_all : Icons.done,
-  //                                 color:
-  //                                     isSeen == true ? Colors.blue : greyColor,
-  //                                 size: 18,
-  //                               )
-  //                             : const SizedBox.shrink(),
-  //                       ],
-  //                     ))
-  //               ],
-  //             ),
-  //           ),
-  //         )),
-  //   );
-  // }
