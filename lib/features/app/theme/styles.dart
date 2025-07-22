@@ -16,3 +16,5 @@ const lightGreyColor = Colors.white70;
 const greyColor = Colors.grey;
 const blackColor = Colors.black;
 const whiteColor = Colors.white;
+const yellowCardBgColor = Color(0xff222e35);
+const yellowCardTextColor = Color.fromARGB(255, 250, 205, 43);
