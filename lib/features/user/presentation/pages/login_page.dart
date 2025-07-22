@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:whatsapp_clone/features/app/const/app_const.dart';
 import 'package:whatsapp_clone/features/app/home/home_page.dart';
+import 'package:whatsapp_clone/features/app/home/modern_home_page.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/auth/auth_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/credential/credential_cubit.dart';
@@ -60,7 +61,8 @@ class _LoginPageState extends State<LoginPage> {
           return BlocBuilder<AuthCubit, AuthState>(
             builder: (context, authState) {
               if (authState is Authenticated) {
-                return HomePage(uid: authState.uid);
+                return ModernHomePage(uid: authState.uid);
+                // return HomePage(uid: authState.uid);
               }
               return _buildWidget();
             },
