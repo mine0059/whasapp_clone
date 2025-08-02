@@ -23,9 +23,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
   @override
   Future<void> createUser(UserEntity user) async {
+    debugPrint("🔧 Creating user document");
     final userCollection = fireStore.collection(FirebaseCollectionConst.users);
 
     final uid = await getCurrentUID();
+    debugPrint("🔧 Current UID: $uid");
 
     final newUser = UserModel(
       email: user.email,
@@ -38,47 +40,91 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     ).toDocument();
 
     try {
-      userCollection.doc(uid).get().then((userDoc) {
-        if (!userDoc.exists) {
-          userCollection.doc(uid).set(newUser);
-        } else {
-          userCollection.doc(uid).update(newUser);
-        }
-      });
+      // Use await instead of .then() for better error handling
+      final userDoc = await userCollection.doc(uid).get();
+      
+      if (!userDoc.exists) {
+        debugPrint("🔧 Creating new user document");
+        await userCollection.doc(uid).set(newUser);
+        debugPrint("✅ User document created successfully");
+      } else {
+        debugPrint("🔧 Updating existing user document");
+        await userCollection.doc(uid).update(newUser);
+        debugPrint("✅ User document updated successfully");
+      }
     } catch (e) {
-      throw Exception("Error occur while creating user");
+      debugPrint("❌ Error creating user: $e");
+      throw Exception("Error occur while creating user: $e");
     }
   }
 
   @override
   Stream<List<UserEntity>> getAllUsers() {
+    debugPrint("🔍 Getting all users");
+    debugPrint("🔐 Current user authenticated: ${auth.currentUser != null}");
+
     final userCollection = fireStore.collection(FirebaseCollectionConst.users);
-    return userCollection.snapshots().map((querySnapshot) =>
-        querySnapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList());
+    return userCollection.snapshots().handleError((error) {
+      debugPrint("❌ Firestore error in getAllUsers: $error");
+      if (error.toString().contains('PERMISSION_DENIED')) {
+        debugPrint(
+            "❌ Permission denied - check Firestore security rules for collection access");
+      }
+    }).map((querySnapshot) {
+      debugPrint("📄 Got ${querySnapshot.docs.length} users from Firestore");
+      return querySnapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList();
+    });
   }
 
   @override
-  Future<String> getCurrentUID() async => auth.currentUser!.uid;
+  Future<String> getCurrentUID() async {
+    final currentUser = auth.currentUser;
+    if (currentUser == null) {
+      throw Exception("No user is currently signed in");
+    }
+    debugPrint("🔍 Current authenticated user UID: ${currentUser.uid}");
+    return currentUser.uid;
+  }
 
   @override
   Future<List<ContactEntity>> getDeviceNumber() async {
+    debugPrint("📱 Requesting contact permission...");
     List<ContactEntity> contactsList = [];
 
-    if (await FlutterContacts.requestPermission()) {
-      List<Contact> contacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withPhoto: true,
-      );
-
-      for (var contact in contacts) {
-        contactsList.add(
-          ContactEntity(
-            name: contact.name,
-            photo: contact.photo,
-            phones: contact.phones,
-          ),
+    try {
+      // Check if permission is already granted
+      if (await FlutterContacts.requestPermission()) {
+        debugPrint("✅ Contact permission granted");
+        
+        // Optimize: Only fetch necessary properties to speed up loading
+        debugPrint("📱 Fetching contacts from device...");
+        List<Contact> contacts = await FlutterContacts.getContacts(
+          withProperties: true,
+          withPhoto: false, // Disable photos initially for faster loading
         );
+
+        debugPrint("📱 Processing ${contacts.length} contacts...");
+        
+        for (var contact in contacts) {
+          // Only add contacts that have phone numbers
+          if (contact.phones.isNotEmpty) {
+            contactsList.add(
+              ContactEntity(
+                name: contact.name,
+                photo: null, // Load photos on demand later
+                phones: contact.phones,
+              ),
+            );
+          }
+        }
+        
+        debugPrint("✅ Processed ${contactsList.length} contacts with phone numbers");
+      } else {
+        debugPrint("❌ Contact permission denied");
       }
+    } catch (e) {
+      debugPrint("❌ Error fetching contacts: $e");
+      throw Exception("Failed to fetch device contacts: $e");
     }
 
     return contactsList;
@@ -90,23 +136,41 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       debugPrint("ERROR: getSingleUser was called with an empty UID.");
       return const Stream.empty();
     }
-    final userCollection = fireStore
-        .collection(FirebaseCollectionConst.users)
-        .where("uid", isEqualTo: uid);
-    return userCollection.snapshots().map((querySnapshot) =>
-        querySnapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList());
+
+    // First way to do it below
+    // This method is less efficient and can lead to security issues if not handled properly.
+    // final userCollection = fireStore
+    //     .collection(FirebaseCollectionConst.users)
+    //     .where("uid", isEqualTo: uid);
+    // return userCollection.snapshots().map((querySnapshot) =>
+    //     querySnapshot.docs.map((e) => UserModel.fromSnapshot(e)).toList());
 
     //Another way to do it below
-    // final userDoc =
-    //     fireStore.collection(FirebaseCollectionConst.users).doc(uid);
 
-    // return userDoc.snapshots().map((docSnapshot) {
-    //   if (docSnapshot.exists) {
-    //     return [UserModel.fromSnapshot(docSnapshot)];
-    //   } else {
-    //     return [];
-    //   }
-    // });
+    debugPrint("🔍 Getting single user with UID: $uid");
+    debugPrint("🔐 Current user authenticated: ${auth.currentUser != null}");
+
+    // Use direct document access instead of where query for better performance and security
+    final userDoc =
+        fireStore.collection(FirebaseCollectionConst.users).doc(uid);
+
+    return userDoc.snapshots().handleError((error) {
+      debugPrint("❌ Firestore error in getSingleUser: $error");
+      if (error.toString().contains('PERMISSION_DENIED')) {
+        debugPrint("❌ Permission denied - check Firestore security rules");
+        debugPrint("❌ Make sure user is authenticated and rules allow access");
+      }
+    }).map((docSnapshot) {
+      debugPrint(
+          "📄 Document snapshot received - exists: ${docSnapshot.exists}");
+      if (docSnapshot.exists) {
+        debugPrint("✅ User document found");
+        return [UserModel.fromSnapshot(docSnapshot)];
+      } else {
+        debugPrint("⚠️ User document does not exist for UID: $uid");
+        return [];
+      }
+    });
   }
 
   @override
