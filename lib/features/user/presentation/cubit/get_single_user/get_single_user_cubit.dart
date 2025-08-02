@@ -1,6 +1,8 @@
 import 'dart:async';
+// ignore: depend_on_referenced_packages
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/user/get_single_user_usecase.dart';
 
@@ -24,10 +26,14 @@ class GetSingleUserCubit extends Cubit<GetSingleUserState> {
       if (users.isNotEmpty) {
         emit(GetSingleUserLoaded(singleUser: users.first));
       } else {
+        // User document doesn't exist - this is normal for new users who haven't completed profile setup
+        debugPrint(
+            "⚠️ User document not found for UID: $uid - user may need to complete profile setup");
         emit(
-            GetSingleUserFailure()); // or create a specific state like NoUserFound
+            GetSingleUserFailure()); // This will show loading spinner until user completes profile
       }
     }, onError: (e) {
+      debugPrint("❌ Error in getSingleUser stream: $e");
       emit(GetSingleUserFailure());
     });
   }

@@ -38,6 +38,7 @@ class _LoginPageState extends State<LoginPage> {
     return BlocConsumer<CredentialCubit, CredentialState>(
       listener: (context, credentialListenerstate) {
         if (credentialListenerstate is CredentialSuccess) {
+          debugPrint("🎉 Credential success - logging in user");
           BlocProvider.of<AuthCubit>(context).loggedIn();
         }
         if (credentialListenerstate is CredentialFailure) {

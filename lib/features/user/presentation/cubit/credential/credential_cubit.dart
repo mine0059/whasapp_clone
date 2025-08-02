@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/credential/sign_in_with_phone_number_usecase.dart';
 import 'package:whatsapp_clone/features/user/domain/usecases/credential/verify_phone_number_usecase.dart';
@@ -15,7 +16,7 @@ class CredentialCubit extends Cubit<CredentialState> {
   final VerifyPhoneNumberUsecase verifyPhoneNumberUsecase;
   final CreateUserUsecase createUserUsecase;
   final UploadProfileImageUsecase uploadProfileImageUsecase;
-  
+
   CredentialCubit({
     required this.signInWithPhoneNumberUsecase,
     required this.verifyPhoneNumberUsecase,
@@ -49,11 +50,15 @@ class CredentialCubit extends Cubit<CredentialState> {
 
   Future<void> submitProfileInfo({required UserEntity user}) async {
     try {
+      debugPrint("🔧 Submitting profile info for user: ${user.username}");
       await createUserUsecase.call(user);
+      debugPrint("✅ Profile info submitted successfully");
       emit(CredentialSuccess());
     } on SocketException catch (_) {
+      debugPrint("❌ Network error while submitting profile");
       emit(CredentialFailure());
-    } catch (_) {
+    } catch (e) {
+      debugPrint("❌ Error submitting profile: $e");
       emit(CredentialFailure());
     }
   }
