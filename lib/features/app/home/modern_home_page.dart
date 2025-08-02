@@ -6,6 +6,7 @@ import 'package:whatsapp_clone/features/call/presentation/pages/call_history_pag
 import 'package:whatsapp_clone/features/chat/presentation/pages/chat_page.dart';
 import 'package:whatsapp_clone/features/status/presentation/pages/status_page.dart';
 import 'package:whatsapp_clone/features/user/domain/entities/user_entity.dart';
+import 'package:whatsapp_clone/features/user/presentation/cubit/auth/auth_cubit.dart';
 import 'package:whatsapp_clone/features/user/presentation/cubit/get_single_user/get_single_user_cubit.dart';
 
 class ModernHomePage extends StatefulWidget {
@@ -26,10 +27,27 @@ class _ModernHomePageState extends State<ModernHomePage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentBottomIndex = 0;
+  
+  // Create unique hero tags that persist across rebuilds
+  late final String _metaAiFabTag;
+  late final String _mainChatFabTag;
+  late final String _textStatusFabTag;
+  late final String _mainCameraFabTag;
+  late final String _callFabTag;
 
   @override
   void initState() {
     super.initState();
+    
+    // Generate unique hero tags once during initialization
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final objectHash = hashCode;
+    _metaAiFabTag = "meta_ai_fab_${timestamp}_$objectHash";
+    _mainChatFabTag = "main_chat_fab_${timestamp}_$objectHash";
+    _textStatusFabTag = "text_status_fab_${timestamp}_$objectHash";
+    _mainCameraFabTag = "main_camera_fab_${timestamp}_$objectHash";
+    _callFabTag = "call_fab_${timestamp}_$objectHash";
+    
     BlocProvider.of<GetSingleUserCubit>(context).getSingleUser(uid: widget.uid);
     WidgetsBinding.instance.addObserver(this);
 
@@ -280,7 +298,7 @@ class _ModernHomePageState extends State<ModernHomePage>
             // Meta AI FAB
             FloatingActionButton.small(
               backgroundColor: Colors.blue,
-              heroTag: "meta_ai_fab",
+              heroTag: _metaAiFabTag,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Meta AI pressed!')),
@@ -292,11 +310,11 @@ class _ModernHomePageState extends State<ModernHomePage>
             // Main Chat FAB
             FloatingActionButton(
               backgroundColor: tabColor,
-              heroTag: "main_chat_fab",
+              heroTag: _mainChatFabTag,
               onPressed: () => Navigator.pushNamed(
                 context,
                 PageConst.contactUsersPage,
-                arguments: '',
+                arguments: widget.uid,
               ),
               child: const Icon(Icons.add_comment, color: Colors.black),
             ),
@@ -310,7 +328,7 @@ class _ModernHomePageState extends State<ModernHomePage>
             // Text Status FAB
             FloatingActionButton.small(
               backgroundColor: const Color(0xFF2A2A2A),
-              heroTag: "text_status_fab",
+              heroTag: _textStatusFabTag,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Text status pressed!')),
@@ -322,7 +340,7 @@ class _ModernHomePageState extends State<ModernHomePage>
             // Camera FAB
             FloatingActionButton(
               backgroundColor: tabColor,
-              heroTag: "main_camera_fab",
+              heroTag: _mainCameraFabTag,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Camera pressed!')),
@@ -336,7 +354,7 @@ class _ModernHomePageState extends State<ModernHomePage>
       case 3: // Calls
         return FloatingActionButton(
           backgroundColor: tabColor,
-          heroTag: "call_fab",
+          heroTag: _callFabTag,
           onPressed: () => Navigator.pushNamed(
             context,
             PageConst.callContactPage,
