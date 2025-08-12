@@ -1,24 +1,151 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:whatsapp_clone/features/app/const/message_type_const.dart';
 import 'package:whatsapp_clone/features/app/global/widgets/whatsapp_image_picker.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
+import 'package:whatsapp_clone/features/chat/domain/entities/message_entity.dart';
+import 'package:whatsapp_clone/features/chat/domain/entities/message_reply_entity.dart';
+import 'package:whatsapp_clone/features/chat/presentation/cubit/message/message_cubit.dart';
+import 'package:whatsapp_clone/features/chat/presentation/widgets/chat_utils.dart';
+
+import 'emoji_bottomSheet.dart';
 
 class ChatTextField extends StatefulWidget {
-  const ChatTextField({super.key, required this.receiverId});
+  const ChatTextField({
+    super.key,
+    required this.message,
+    required this.scrollController,
+  });
 
-  final String receiverId;
+  final MessageEntity message;
+  final ScrollController scrollController;
 
   @override
-  State<ChatTextField> createState() => _ChatTextFieldState();
+  State<ChatTextField> createState() => ChatTextFieldState();
 }
 
-class _ChatTextFieldState extends State<ChatTextField> {
+class ChatTextFieldState extends State<ChatTextField> {
   late TextEditingController messageController;
 
   bool isMessageIconEnabled = false;
   double cardHeight = 0;
+  bool isShowEmojiKeyboard = false;
+  FocusNode focusNode = FocusNode();
+
+  // Method to close all menus (called from parent)
+  void closeAllMenus() {
+    setState(() {
+      cardHeight = 0;
+      isShowEmojiKeyboard = false;
+    });
+    _hideKeyboard();
+  }
+
+  @override
+  void initState() {
+    messageController = TextEditingController();
+    super.initState();
+
+    // Listen to focus changes to handle keyboard/emoji toggle
+    focusNode.addListener(() {
+      if (focusNode.hasFocus && isShowEmojiKeyboard) {
+        setState(() {
+          isShowEmojiKeyboard = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    messageController.dispose();
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  void _hideEmojiContainer() {
+    setState(() {
+      isShowEmojiKeyboard = false;
+    });
+  }
+
+  void _showEmojiContainer() {
+    setState(() {
+      isShowEmojiKeyboard = true;
+    });
+  }
+
+  void _showKeyboard() => focusNode.requestFocus();
+  void _hideKeyboard() => focusNode.unfocus();
+
+  void toggleEmojiKeyboard() {
+    if (isShowEmojiKeyboard) {
+      _showKeyboard();
+      _hideEmojiContainer();
+    } else {
+      // showEmojiPicker(context);
+      _hideKeyboard();
+      _showEmojiContainer();
+    }
+  }
+
+  Future<void> _scrollToBottom() async {
+    if (widget.scrollController.hasClients) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      widget.scrollController.animateTo(
+        widget.scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _onEmojiSelected(String emoji) {
+    final currentPosition = messageController.selection.base.offset;
+    final currentText = messageController.text;
+
+    final newText = currentText.substring(0, currentPosition) +
+        emoji +
+        currentText.substring(currentPosition);
+
+    messageController.text = newText;
+    messageController.selection = TextSelection.fromPosition(
+      TextPosition(offset: currentPosition + emoji.length),
+    );
+
+    // update message icon state
+    setState(() {
+      isMessageIconEnabled = messageController.text.isNotEmpty;
+    });
+  }
+
+  void _onBackspacePressed() {
+    final currentPosition = messageController.selection.base.offset;
+    if (currentPosition > 0) {
+      final currentText = messageController.text;
+      final newText = currentText.substring(0, currentPosition - 1) +
+          currentText.substring(currentPosition);
+
+      messageController.text = newText;
+      messageController.selection = TextSelection.fromPosition(
+        TextPosition(offset: currentPosition - 1),
+      );
+
+      setState(() {
+        isMessageIconEnabled = messageController.text.isNotEmpty;
+      });
+    }
+  }
+
+  void _onGifSelected() {
+    // Handle GIF selection
+    _hideEmojiContainer(); // Close emoji picker
+    // TODO: Implement GIF sending logic
+    print('GIF selected');
+  }
 
   void sendImageMessageFromGallery() async {
     // Close the attach menu first
@@ -57,18 +184,6 @@ class _ChatTextFieldState extends State<ChatTextField> {
     //     builder: (_) => const ImagePickerWidget(),
     //   ),
     // );
-  }
-
-  @override
-  void initState() {
-    messageController = TextEditingController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    messageController.dispose();
-    super.dispose();
   }
 
   @override
@@ -157,13 +272,22 @@ class _ChatTextFieldState extends State<ChatTextField> {
             children: [
               Expanded(
                 child: TextFormField(
+                  focusNode: focusNode,
+                  onTap: () {
+                    setState(() {
+                      cardHeight = 0;
+                    });
+                  },
                   controller: messageController,
                   maxLines: 4,
                   minLines: 1,
                   onChanged: (value) {
-                    value.isEmpty
-                        ? setState(() => isMessageIconEnabled = false)
-                        : setState(() => isMessageIconEnabled = true);
+                    // value.isEmpty
+                    //     ? setState(() => isMessageIconEnabled = false)
+                    //     : setState(() => isMessageIconEnabled = true);
+                    setState(() {
+                      isMessageIconEnabled = value.isNotEmpty;
+                    });
                   },
                   decoration: InputDecoration(
                       hintText: 'Message',
@@ -181,9 +305,11 @@ class _ChatTextFieldState extends State<ChatTextField> {
                       prefixIcon: Material(
                         color: Colors.transparent,
                         child: IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.emoji_emotions_outlined,
+                            onPressed: toggleEmojiKeyboard,
+                            icon: Icon(
+                              isShowEmojiKeyboard == false
+                                  ? Icons.emoji_emotions_outlined
+                                  : Icons.keyboard_outlined,
                               color: greyColor,
                               size: 23,
                             )),
@@ -194,9 +320,14 @@ class _ChatTextFieldState extends State<ChatTextField> {
                           IconButton(
                               onPressed: () {
                                 setState(() {
-                                  cardHeight == 0
-                                      ? cardHeight = 220
-                                      : cardHeight = 0;
+                                  if (cardHeight == 0) {
+                                    cardHeight = 220;
+                                    // Hide emoji keyboard when showing attachments
+                                    isShowEmojiKeyboard = false;
+                                    _hideKeyboard();
+                                  } else {
+                                    cardHeight = 0;
+                                  }
                                 });
                               },
                               icon: const Icon(
@@ -224,16 +355,30 @@ class _ChatTextFieldState extends State<ChatTextField> {
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      isMessageIconEnabled ? Icons.send : Icons.mic_outlined,
-                      // size: 28,
-                      color: Colors.white,
-                    )),
+                  onPressed: _sendTextMessage,
+                  icon: Icon(
+                    isMessageIconEnabled ? Icons.send : Icons.mic_outlined,
+                    // size: 28,
+                    color: Colors.white,
+                  ),
+                ),
               )
             ],
           ),
         ),
+
+        // Emoji picker = This replaces the modal bottom sheet approach
+        if (isShowEmojiKeyboard)
+          EmojiBottomsheet(
+            onEmojiSelected: _onEmojiSelected,
+            onBackspace: _onBackspacePressed,
+            onGifSelected: _onGifSelected,
+            onClose: () {
+              setState(() {
+                isShowEmojiKeyboard = false;
+              });
+            },
+          )
       ],
     );
   }
@@ -278,5 +423,50 @@ class _ChatTextFieldState extends State<ChatTextField> {
         ),
       ),
     );
+  }
+
+  _sendTextMessage() async {
+    final provider = BlocProvider.of<MessageCubit>(context);
+
+    if (isMessageIconEnabled || messageController.text.isNotEmpty) {
+      if (provider.messageReplay.message != null) {
+        _sendMessage(
+          message: messageController.text,
+          type: MessageTypeConst.textMessage,
+          repliedMessage: provider.messageReplay.message,
+          repliedTo: provider.messageReplay.username,
+          repliedMessageType: provider.messageReplay.messageType,
+        );
+      } else {
+        _sendMessage(
+          message: messageController.text,
+          type: MessageTypeConst.textMessage,
+        );
+      }
+
+      provider.setMessageReplay = MessageReplayEntity();
+      setState(() {
+        messageController.clear();
+      });
+    }
+  }
+
+  void _sendMessage(
+      {required String message,
+      required String type,
+      String? repliedMessage,
+      String? repliedTo,
+      String? repliedMessageType}) {
+    _scrollToBottom();
+    ChatUtils.sendMessage(context,
+            messageEntity: widget.message,
+            message: message,
+            type: type,
+            repliedTo: repliedTo,
+            repliedMessageType: repliedMessageType,
+            repliedMessage: repliedMessage)
+        .then((value) {
+      _scrollToBottom();
+    });
   }
 }
