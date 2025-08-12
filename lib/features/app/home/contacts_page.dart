@@ -124,7 +124,8 @@ class _ContactsPageState extends State<ContactsPage>
                 ),
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(1.0),
-                  child: Container(height: 1.0, color: greyColor.withOpacity(0.15)),
+                  child: Container(
+                      height: 1.0, color: greyColor.withOpacity(0.15)),
                 ),
               ),
               body: SafeArea(
@@ -194,7 +195,8 @@ class _ContactsPageState extends State<ContactsPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const Icon(Icons.error_outline,
+                        size: 64, color: Colors.red),
                     const SizedBox(height: 16),
                     const Text(
                       'Failed to load contacts',
@@ -203,7 +205,8 @@ class _ContactsPageState extends State<ContactsPage>
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        BlocProvider.of<GetDeviceNumberCubit>(context).getDeviceNumber();
+                        BlocProvider.of<GetDeviceNumberCubit>(context)
+                            .getDeviceNumber();
                       },
                       child: const Text("Retry"),
                     ),
@@ -500,19 +503,20 @@ class _ContactsPageState extends State<ContactsPage>
 
                       return ListTile(
                         onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            PageConst.singleChatPage,
-                            arguments: MessageEntity(
-                              senderUid: currentUser.uid,
-                              recipientUid: user.uid,
-                              senderName: currentUser.username,
-                              recipientName: user.username,
-                              senderProfile: currentUser.profileUrl,
-                              recipientProfile: user.profileUrl,
-                              uid: widget.uid,
-                            ),
-                          );
+                          Navigator.pushReplacementNamed(
+                              context, PageConst.singleChatPage,
+                              arguments: {
+                                'message': MessageEntity(
+                                  senderUid: currentUser.uid,
+                                  recipientUid: user.uid,
+                                  senderName: currentUser.username,
+                                  recipientName: user.username,
+                                  senderProfile: currentUser.profileUrl,
+                                  recipientProfile: user.profileUrl,
+                                  uid: widget.uid,
+                                ),
+                                'isFromContacts': true,
+                              });
                         },
                         leading: SizedBox(
                           width: 50,
