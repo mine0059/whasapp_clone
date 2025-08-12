@@ -9,6 +9,8 @@ import 'package:whatsapp_clone/features/chat/domain/usecases/get_message_usecase
 import 'package:whatsapp_clone/features/chat/domain/usecases/seen_message_update_usecase.dart';
 import 'package:whatsapp_clone/features/chat/domain/usecases/send_message_usecase.dart';
 
+import '../../../domain/entities/chat_entity.dart';
+
 part 'message_state.dart';
 
 class MessageCubit extends Cubit<MessageState> {
@@ -43,6 +45,17 @@ class MessageCubit extends Cubit<MessageState> {
     } on SocketException {
       emit(MessageFailure());
     } catch (_) {
+      emit(MessageFailure());
+    }
+  }
+
+  Future<void> sendMessage(
+      {required ChatEntity chat, required MessageEntity message}) async {
+    try {
+      await sendMessageUseCase.call(chat, message);
+    } on SocketException {
+      emit(MessageFailure());
+    } catch (e) {
       emit(MessageFailure());
     }
   }
