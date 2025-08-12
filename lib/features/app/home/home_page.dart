@@ -190,10 +190,13 @@ class _HomePageState extends State<HomePage>
               )),
           body: TabBarView(
             controller: _tabController,
-            children: const [
-              Center(child: ChatPage()),
-              Center(child: StatusPage()),
+            children: [
               Center(
+                  child: ChatPage(
+                uid: widget.uid,
+              )),
+              const Center(child: StatusPage()),
+              const Center(
                 child: CallHistoryPage(),
               )
             ],
