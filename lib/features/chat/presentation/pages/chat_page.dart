@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:whatsapp_clone/features/app/const/page_const.dart';
 import 'package:whatsapp_clone/features/app/global/widgets/profile_widget.dart';
 import 'package:whatsapp_clone/features/app/theme/styles.dart';
+import 'package:whatsapp_clone/features/chat/domain/entities/chat_entity.dart';
+import 'package:whatsapp_clone/features/chat/domain/entities/message_entity.dart';
+import 'package:whatsapp_clone/features/chat/presentation/cubit/chat/chat_cubit.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  const ChatPage({super.key, required this.uid});
+  final String uid;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -24,61 +30,98 @@ class _ChatPageState extends State<ChatPage> {
   final List<String> _filterTabs = ['All', 'Unread', 'Favorites', 'Groups'];
 
   @override
+  void initState() {
+    BlocProvider.of<ChatCubit>(context)
+        .getMyChat(chat: ChatEntity(senderUid: widget.uid));
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        // padding: const EdgeInsets.only(top: 20),
-        children: [
-          _buildSearchTextField(),
-          _buildFilterTabs(),
-          _buildArchivedSection(),
+        body: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
+      if (state is ChatLoaded) {
+        final myChat = state.chatContacts;
 
-          // Chat list section
-          ...List.generate(20, (index) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  PageConst.singleChatPage,
-                  arguments: 'userId',
-                );
-              },
-              child: ListTile(
-                leading: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: profileWidget(),
+        if (myChat.isEmpty) {
+          return const Center(
+            child: Text("No Conversation Yet"),
+          );
+        }
+
+        return ListView(
+          // padding: const EdgeInsets.only(top: 20),
+          children: [
+            _buildSearchTextField(),
+            _buildFilterTabs(),
+            _buildArchivedSection(),
+
+            // Chat list section
+            ...List.generate(myChat.length, (index) {
+              final chat = myChat[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    PageConst.singleChatPage,
+                    arguments: {
+                      'message': MessageEntity(
+                        senderUid: chat.senderUid,
+                        recipientUid: chat.recipientUid,
+                        senderName: chat.senderName,
+                        recipientName: chat.recipientName,
+                        senderProfile: chat.senderProfile,
+                        recipientProfile: chat.recipientProfile,
+                        uid: widget.uid,
+                      ),
+                      'isFromContacts': false,
+                    },
+                  );
+                },
+                child: ListTile(
+                  leading: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: profileWidget(imageUrl: chat.recipientProfile),
+                    ),
+                  ),
+                  title: Text(
+                    "${chat.recipientName}",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "${chat.recentTextMessage}",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  trailing: Text(
+                    DateFormat.jm().format(chat.createdAt!.toDate()),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
-                title: const Text(
-                  "User Name",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: const Text(
-                  "Last message sent",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-                trailing: const Text(
-                  "10:30 AM",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
+              );
+            }),
+          ],
+        );
+      }
+      return const Center(
+        child: CircularProgressIndicator(
+          color: tabColor,
+        ),
+      );
+    }));
   }
 
   Widget _buildSearchTextField() {
