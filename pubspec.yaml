@@ -69,6 +69,7 @@ dependencies:
   http_parser: ^4.0.2
   custom_clippers: ^2.0.0
   photo_manager: ^3.7.1
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
