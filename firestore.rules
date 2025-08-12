@@ -1,29 +1,43 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read and write their own user document
+    // Users collection rules
     match /users/{userId} {
+      // Allow users to read and write their own document
       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Users can read other users' basic info (for contacts/chat)
-    match /users/{userId} {
+      // Allow authenticated users to read other users' documents (for contacts/chat)
       allow read: if request.auth != null;
+      
+      // MyChat subcollection rules
+      match /myChat/{chatId} {
+        // Allow users to read and write their own chats
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        // Allow users to write to chats where they are the chatId (recipient in conversation)
+        allow write: if request.auth != null && request.auth.uid == chatId;
+        
+        // Messages subcollection within myChat
+        match /messages/{messageId} {
+          // Allow users to read and write messages in their own chats
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          // Allow users to write messages to conversations where they are the other participant
+          allow write: if request.auth != null && request.auth.uid == chatId;
+        }
+      }
     }
     
-    // Chat-related rules
+    // Legacy chat rules (keep if you have other chat implementations)
     match /chats/{chatId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid in resource.data.participants;
+      allow read, write: if request.auth != null;
     }
     
     match /chats/{chatId}/messages/{messageId} {
       allow read, write: if request.auth != null;
     }
     
-    // Default deny all other access
+    // Fallback rule - be more restrictive
     match /{document=**} {
-      allow read, write: if false;
+      allow read: if false;
+      allow write: if false;
     }
   }
 }
