@@ -59,19 +59,60 @@ class _ChatPageState extends State<ChatPage> {
             // Chat list section
             ...List.generate(myChat.length, (index) {
               final chat = myChat[index];
+
+              // Debug prints to understand the data structure
+              debugPrint("=== CHAT DEBUG INFO ===");
+              debugPrint("Current user UID: ${widget.uid}");
+              debugPrint("Chat senderUid: ${chat.senderUid}");
+              debugPrint("Chat recipientUid: ${chat.recipientUid}");
+              debugPrint("Chat senderName: ${chat.senderName}");
+              debugPrint("Chat recipientName: ${chat.recipientName}");
+              debugPrint("========================");
+
               return GestureDetector(
                 onTap: () {
+                  // Determine who is the "other person" based on current user UID
+                  String otherPersonUid;
+                  String otherPersonName;
+                  String otherPersonProfile;
+                  String currentUserName;
+                  String currentUserProfile;
+
+                  if (chat.senderUid == widget.uid) {
+                    // Current user is the sender in this chat record
+                    otherPersonUid = chat.recipientUid!;
+                    otherPersonName = chat.recipientName!;
+                    otherPersonProfile = chat.recipientProfile!;
+                    currentUserName = chat.senderName!;
+                    currentUserProfile = chat.senderProfile!;
+                  } else {
+                    // Current user is the recipient in this chat record
+                    otherPersonUid = chat.senderUid!;
+                    otherPersonName = chat.senderName!;
+                    otherPersonProfile = chat.senderProfile!;
+                    currentUserName = chat.recipientName!;
+                    currentUserProfile = chat.recipientProfile!;
+                  }
+
+                  print("=== NAVIGATION DEBUG ===");
+                  print("Other person: $otherPersonName ($otherPersonUid)");
+                  print("Current user: $currentUserName (${widget.uid})");
+                  print("========================");
+
                   Navigator.pushNamed(
                     context,
                     PageConst.singleChatPage,
                     arguments: {
                       'message': MessageEntity(
-                        senderUid: chat.senderUid,
-                        recipientUid: chat.recipientUid,
-                        senderName: chat.senderName,
-                        recipientName: chat.recipientName,
-                        senderProfile: chat.senderProfile,
-                        recipientProfile: chat.recipientProfile,
+                        senderUid: widget.uid, // Current user
+                        recipientUid: otherPersonUid, // The other person
+                        senderName: currentUserName, // Current user's name
+                        recipientName:
+                            otherPersonName, // The other person's name
+                        senderProfile:
+                            currentUserProfile, // Current user's profile
+                        recipientProfile:
+                            otherPersonProfile, // The other person's profile
                         uid: widget.uid,
                       ),
                       'isFromContacts': false,
@@ -84,11 +125,19 @@ class _ChatPageState extends State<ChatPage> {
                     height: 50,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(25),
-                      child: profileWidget(imageUrl: chat.recipientProfile),
+                      child: profileWidget(
+                          imageUrl: chat.senderUid == widget.uid
+                              ? chat
+                                  .recipientProfile // Show other person's profile
+                              : chat
+                                  .senderProfile // Show other person's profile
+                          ),
                     ),
                   ),
                   title: Text(
-                    "${chat.recipientName}",
+                    chat.senderUid == widget.uid
+                        ? "${chat.recipientName}" // Show other person's name
+                        : "${chat.senderName}", // Show other person's name
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
