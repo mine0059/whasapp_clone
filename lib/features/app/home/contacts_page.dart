@@ -507,12 +507,12 @@ class _ContactsPageState extends State<ContactsPage>
                               context, PageConst.singleChatPage,
                               arguments: {
                                 'message': MessageEntity(
-                                  senderUid: currentUser.uid,
-                                  recipientUid: user.uid,
-                                  senderName: currentUser.username,
-                                  recipientName: user.username,
-                                  senderProfile: currentUser.profileUrl,
-                                  recipientProfile: user.profileUrl,
+                                  senderUid: currentUser.uid,  // Current user is sender
+                                  recipientUid: user.uid,      // Selected user is recipient
+                                  senderName: currentUser.username,   // Current user's name
+                                  recipientName: user.username,       // Selected user's name
+                                  senderProfile: currentUser.profileUrl,  // Current user's profile
+                                  recipientProfile: user.profileUrl,      // Selected user's profile
                                   uid: widget.uid,
                                 ),
                                 'isFromContacts': true,
