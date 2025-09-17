@@ -79,10 +79,10 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
             senderProfile: chat.recipientProfile,
             recipientProfile: chat.senderProfile,
             recentTextMessage: chat.recentTextMessage,
-            recipientName: chat.recipientName,
-            senderName: chat.senderName,
-            recipientUid: chat.recipientUid,
-            senderUid: chat.senderUid,
+            recipientName: chat.senderName,  // Fixed: swapped to match profile swap
+            senderName: chat.recipientName,  // Fixed: swapped to match profile swap
+            recipientUid: chat.senderUid,    // Fixed: swapped to match the perspective
+            senderUid: chat.recipientUid,    // Fixed: swapped to match the perspective
             totalUnReadMessages: chat.totalUnReadMessages)
         .toDocument();
     try {
