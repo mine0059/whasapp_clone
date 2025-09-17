@@ -41,6 +41,14 @@ class _SingleChatPageState extends State<SingleChatPage> {
   @override
   void initState() {
     super.initState();
+    // Debug prints to understand what's being passed
+    print("=== SINGLE CHAT DEBUG INFO ===");
+    print("widget.message.senderUid: ${widget.message.senderUid}");
+    print("widget.message.recipientUid: ${widget.message.recipientUid}");
+    print("widget.message.senderName: ${widget.message.senderName}");
+    print("widget.message.recipientName: ${widget.message.recipientName}");
+    print("widget.message.uid: ${widget.message.uid}");
+    print("===========================");
     BlocProvider.of<GetSingleUserCubit>(context)
         .getSingleUser(uid: widget.message.recipientUid!);
 
