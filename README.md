@@ -204,7 +204,7 @@ users/
 │           └── chatInfo
 ```
 
-### 🔐 **Security Rules**
+<!-- ### 🔐 **Security Rules**
 ```javascript
 rules_version = '2';
 service cloud.firestore {
@@ -213,7 +213,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
-}
+} -->
 ```
 
 ---
@@ -293,10 +293,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Your Name**
+**Emmanuel Oghenemine**
 - GitHub: [@mine0059](https://github.com/mine0059)
 <!-- - LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile) -->
-- Email: your.oghenemineemma@gmail.com
+- Email: oghenemineemma@gmail.com
 
 ---
 
